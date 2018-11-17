@@ -17,3 +17,4 @@ cd examples
 Create a new [OpenWeatherMapStation](https://openweathermap.org/stations#main) and drop response to `station.json` - and append a field, `"appid":` to the JSON file. 
 
 Add `RegisterSensorReading.py` to crontab. 
+Reading GPIO might need root.
