@@ -5,6 +5,8 @@ based on: https://www.instructables.com/id/Raspberry-PI-and-DHT22-temperature-an
 
 ## Register new Pi: 
 
+Use `Ansible`, or the manual setup: 
+
 ```
 cd /home/pi
 git clone https://github.com/adafruit/Adafruit_Python_DHT.git

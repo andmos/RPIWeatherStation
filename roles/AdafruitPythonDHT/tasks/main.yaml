@@ -1,0 +1,35 @@
+# - name: Install requires packages
+#   become: yes
+#   apt:
+#     name: u'{{ requiredPackages }}'
+
+- name: Clone Adafruit_DHT project from Github
+  git:
+    repo: https://github.com/adafruit/Adafruit_Python_DHT.git
+    dest: "{{ adaFruitDHTPath }}"
+    update: no #If we have changes...
+  register: clonedRepo
+
+- name: Run setup of Adafruit_DHT
+  shell: python setup.py install
+  args:
+    chdir: "{{ adaFruitDHTPath }}"
+  when: clonedRepo.changed
+  become: yes
+
+- name: Copy RegisterSensorReading.py to executing folder
+  copy:
+    src: RegisterSensorReading.py
+    dest: "{{ adaFruitDHTPathExecutingFolder }}"
+
+- name: Copy station.json to executing folder
+  template:
+    src: station.json
+    dest: "{{ adaFruitDHTPathExecutingFolder }}"
+
+- name: Enable cron-job for registering sensor data
+  cron:
+    name: "Register Sensor Data"
+    minute: "*/30"
+    job: "cd {{ adaFruitDHTPathExecutingFolder }}; /usr/bin/python {{ adaFruitDHTPathExecutingFolder }}RegisterSensorReading.py > {{ schedueledTaskLog }}"
+  become: true

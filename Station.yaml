@@ -1,0 +1,4 @@
+- name: Set Up Raspberry Pi Weather Station
+  hosts: rpistation
+  roles:
+    - AdafruitPythonDHT
