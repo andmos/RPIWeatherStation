@@ -1,13 +1,14 @@
-# - name: Install requires packages
-#   become: yes
-#   apt:
-#     name: u'{{ requiredPackages }}'
+- name: Install requires packages
+  become: yes
+  apt:
+    name: "{{ item }}"
+  with_ items: "{{ requiredPackages }}"
 
 - name: Clone Adafruit_DHT project from Github
   git:
     repo: https://github.com/adafruit/Adafruit_Python_DHT.git
     dest: "{{ adaFruitDHTPath }}"
-    update: no #If we have changes...
+    update: no  #If we have changes...
   register: clonedRepo
 
 - name: Run setup of Adafruit_DHT
