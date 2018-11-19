@@ -1,11 +1,13 @@
 #! "netcoreapp2.1"
 
-#r "nuget: Newtonsoft.Json, 10.0.3"
+#r "nuget: Newtonsoft.Json, 11.0.2"
 #r "nuget: System.Net.Http, 4.3.3"
 
 using System.Net.Http;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Converters;
 
 private const string _apiBaseAddress = @"http://api.openweathermap.org/data/3.0/measurements";
 private string _weatherServiceAPIKey => Environment.GetEnvironmentVariable("appId");
@@ -23,7 +25,7 @@ if (Args.Any())
     long toDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     var mesurementsJson = await GetMesurementsJson(fromDate, toDate, _stations.FirstOrDefault());
 
-    var jsonObject = JArray.Parse(mesurementsJson);
+    var sensorMessurements = JsonConvert.DeserializeObject<IEnumerable<WeatherSensorMessurement>>(mesurementsJson);
 
     Console.WriteLine(mesurementsJson);
 }
@@ -46,4 +48,32 @@ private async Task<string> GetMesurementsJson(long fromDate, long toDate, string
         }
         return await response.Content.ReadAsStringAsync();
     }
+}
+
+public class WeatherSensorMessurement
+{
+    [JsonProperty("station_id")]
+    public string StationId { get; set; }
+    [JsonProperty("date"), JsonConverter(typeof(UnixDateTimeConverter))]
+    public DateTime TimeStamp { get; set; }
+    [JsonProperty("temp")]
+    public Temperature Temp { get; set; }
+    [JsonProperty("humidity")]
+    public Humidity Humidity { get; set; }
+}
+
+public class Temperature
+{
+    [JsonProperty("min")]
+    public double Min { get; set; }
+    [JsonProperty("max")]
+    public double Max { get; set; }
+    [JsonProperty("average")]
+    public double Average { get; set; }
+}
+
+public class Humidity
+{
+    [JsonProperty("average")]
+    public double Average { get; set; }
 }
