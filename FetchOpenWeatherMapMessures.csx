@@ -2,21 +2,29 @@
 
 #r "nuget: Newtonsoft.Json, 11.0.2"
 #r "nuget: System.Net.Http, 4.3.3"
+#r "nuget: InfluxDB.Net.Core, 1.1.22-beta"
 
 using System.Net.Http;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Converters;
+using InfluxDB.Net;
+using InfluxDB.Net.Models;
+using InfluxDB.Net.Helpers;
+using InfluxDB.Net.Infrastructure.Influx;
+using InfluxDB.Net.Infrastructure.Configuration;
 
 private const string _apiBaseAddress = @"http://api.openweathermap.org/data/3.0/measurements";
 private string _weatherServiceAPIKey => Environment.GetEnvironmentVariable("appId");
 private string _type = "m";
-private int _limit = 100;
+private int _limit = 400;
 private List<string> _stations = new List<string>
 {
     "5bf05033199f0300011f2b9f"
 };
+
+private string _influxDbConnectionString = @"http://127.0.0.1:8086";
 
 if (Args.Any())
 {
@@ -28,6 +36,9 @@ if (Args.Any())
     var sensorMessurements = JsonConvert.DeserializeObject<IEnumerable<WeatherSensorMessurement>>(mesurementsJson);
 
     Console.WriteLine(mesurementsJson);
+
+	await WriteMesurementsToTimeSeriesDb(_influxDbConnectionString, sensorMessurements);
+
 }
 
 private async Task<string> GetMesurementsJson(long fromDate, long toDate, string station)
@@ -48,6 +59,33 @@ private async Task<string> GetMesurementsJson(long fromDate, long toDate, string
         }
         return await response.Content.ReadAsStringAsync();
     }
+}
+
+private async Task WriteMesurementsToTimeSeriesDb(string dbConnectionString, IEnumerable<WeatherSensorMessurement> messurements)
+{
+	var client = new InfluxDb(dbConnectionString, "root", "root");
+  	Pong pong = await client.PingAsync();
+	if(!pong.Success)
+	{
+		Console.WriteLine($"could not connect to database at {dbConnectionString}");
+		return;
+	}
+	var response = await  client.CreateDatabaseAsync("WeatherSensorMessurements");
+	
+	foreach(var messurement in messurements)
+	{
+		var poin = new Point();
+		poin.Tags.Add("stationId", messurement.StationId);
+		poin.Fields.Add("averageTemperature", messurement.Temp.Average);
+		poin.Fields.Add("averageHumidity", messurement.Humidity.Average);
+		poin.Measurement = "WeatherSensorMessurement";
+		poin.Timestamp = messurement.TimeStamp;
+
+		InfluxDbApiResponse writeResponse =await client.WriteAsync("WeatherSensorMessurements", poin);
+	}
+	
+	var query = await client.QueryAsync("WeatherSensorMessurements", "select * from WeatherSensorMessurement");
+	Console.WriteLine(query.FirstOrDefault().Values);
 }
 
 public class WeatherSensorMessurement
