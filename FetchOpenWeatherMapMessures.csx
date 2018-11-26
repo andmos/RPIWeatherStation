@@ -83,9 +83,6 @@ private async Task WriteMesurementsToTimeSeriesDb(string dbConnectionString, IEn
 
 		InfluxDbApiResponse writeResponse =await client.WriteAsync("WeatherSensorMessurements", poin);
 	}
-	
-	var query = await client.QueryAsync("WeatherSensorMessurements", "select * from WeatherSensorMessurement");
-	Console.WriteLine(query.FirstOrDefault().Values);
 }
 
 public class WeatherSensorMessurement
