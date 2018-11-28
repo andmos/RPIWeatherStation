@@ -16,6 +16,7 @@ using InfluxDB.Net.Infrastructure.Influx;
 using InfluxDB.Net.Infrastructure.Configuration;
 
 private const string _apiBaseAddress = @"http://api.openweathermap.org/data/3.0/measurements";
+private const string _databaseName = "WeatherSensorMessurements";
 private string _weatherServiceAPIKey => Environment.GetEnvironmentVariable("appId");
 private string _type = "m";
 private int _limit = 400;
@@ -24,7 +25,7 @@ private List<string> _stations = new List<string>
     "5bf05033199f0300011f2b9f"
 };
 
-private string _influxDbConnectionString = @"http://127.0.0.1:8086";
+    private string _influxDbConnectionString = @"http://127.0.0.1:8086";
 
 if (Args.Any())
 {
@@ -70,7 +71,7 @@ private async Task WriteMesurementsToTimeSeriesDb(string dbConnectionString, IEn
 		Console.WriteLine($"could not connect to database at {dbConnectionString}");
 		return;
 	}
-	var response = await  client.CreateDatabaseAsync("WeatherSensorMessurements");
+	var response = await  client.CreateDatabaseAsync(_databaseName);
 	
 	foreach(var messurement in messurements)
 	{
@@ -81,7 +82,7 @@ private async Task WriteMesurementsToTimeSeriesDb(string dbConnectionString, IEn
 		poin.Measurement = "WeatherSensorMessurement";
 		poin.Timestamp = messurement.TimeStamp;
 
-		InfluxDbApiResponse writeResponse =await client.WriteAsync("WeatherSensorMessurements", poin);
+		InfluxDbApiResponse writeResponse =await client.WriteAsync(_databaseName, poin);
 	}
 }
 
