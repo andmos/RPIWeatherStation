@@ -11,3 +11,6 @@ services:
       - "3000:3000"
     depends_on: 
       - "database"
+    volumes: 
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
