@@ -19,27 +19,35 @@ private const string _apiBaseAddress = @"http://api.openweathermap.org/data/3.0/
 private const string _databaseName = "WeatherSensorMessurements";
 private string _weatherServiceAPIKey => Environment.GetEnvironmentVariable("appId");
 private string _type = "m";
-private int _limit = 400;
+private int _limit = 2048;
+private int _defaultNumberOfHours = 2;
 private List<string> _stations = new List<string>
 {
     "5bf05033199f0300011f2b9f"
 };
 
-    private string _influxDbConnectionString = @"http://127.0.0.1:8086";
+private string _influxDbConnectionString = @"http://database:8086";
 
-if (Args.Any())
+if(string.IsNullOrWhiteSpace(_weatherServiceAPIKey))
 {
-    long fromDate = long.Parse(Args[0]);
+    Console.WriteLine("'appId' is empty. export it as env variable.");
+    return 1; 
+}
 
-    long toDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-    var mesurementsJson = await GetMesurementsJson(fromDate, toDate, _stations.FirstOrDefault());
+var mesurementsJson = await GetMesurementsJson(GetFromDate(), DateTimeOffset.UtcNow.ToUnixTimeSeconds(), _stations.FirstOrDefault());
+var sensorMessurements = JsonConvert.DeserializeObject<IEnumerable<WeatherSensorMessurement>>(mesurementsJson);
 
-    var sensorMessurements = JsonConvert.DeserializeObject<IEnumerable<WeatherSensorMessurement>>(mesurementsJson);
+Console.WriteLine(mesurementsJson);
 
-    Console.WriteLine(mesurementsJson);
+await WriteMesurementsToTimeSeriesDb(_influxDbConnectionString, sensorMessurements);
 
-	await WriteMesurementsToTimeSeriesDb(_influxDbConnectionString, sensorMessurements);
-
+private long GetFromDate()
+{
+    if (Args.Any())
+    {
+        _defaultNumberOfHours = int.Parse(Args[0]);
+    }
+    return DateTimeOffset.UtcNow.AddHours(- _defaultNumberOfHours).ToUnixTimeSeconds();
 }
 
 private async Task<string> GetMesurementsJson(long fromDate, long toDate, string station)

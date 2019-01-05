@@ -14,3 +14,10 @@ services:
     volumes: 
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
+  datapump: 
+    image: "andmos/datapump"
+    build: .
+    depends_on: 
+      - "database"
+    environment: 
+      - "appId=${appId}"
