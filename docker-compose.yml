@@ -21,3 +21,4 @@ services:
       - "database"
     environment: 
       - "appId=${appId}"
+    restart: on-failure:3
