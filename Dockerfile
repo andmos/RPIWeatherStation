@@ -1,5 +1,5 @@
 FROM andmos/dotnet-script
 
-COPY FetchOpenWeatherMapMessures.csx FetchOpenWeatherMapMessures.csx
+COPY FetchOpenWeatherMapMeasures.csx FetchOpenWeatherMapMeasures.csx
 
-CMD ["FetchOpenWeatherMapMessures.csx"]
+CMD ["FetchOpenWeatherMapMeasures.csx"]

@@ -7,4 +7,4 @@ with the [DHT22 2302](https://www.gearbest.com/goods/pp_009360784166.html?lang=e
 Register new Pi with the Ansible Playbook.
 
 ### Dashboard 
-The `docker-compose.yml` file contains a simple setup with InfluxDb and Grafana to show data. `FetchOpenWeatherMapMessures.csx` pumps data from OpenWeatherMap to influx.
+The `docker-compose.yml` file contains a simple setup with InfluxDb and Grafana to show data. `FetchOpenWeatherMapMeasures.csx` pumps data from OpenWeatherMap to influx.

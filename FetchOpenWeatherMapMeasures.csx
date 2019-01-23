@@ -16,7 +16,7 @@ using InfluxDB.Net.Infrastructure.Influx;
 using InfluxDB.Net.Infrastructure.Configuration;
 
 private const string _apiBaseAddress = @"http://api.openweathermap.org/data/3.0/measurements";
-private const string _databaseName = "WeatherSensorMessurements";
+private const string _databaseName = "WeatherSensorMeasurements";
 private string _weatherServiceAPIKey => Environment.GetEnvironmentVariable("appId");
 private string _type = "m";
 private int _limit = 2048;
@@ -34,12 +34,12 @@ if(string.IsNullOrWhiteSpace(_weatherServiceAPIKey))
     return 1; 
 }
 
-var mesurementsJson = await GetMesurementsJson(GetFromDate(), DateTimeOffset.UtcNow.ToUnixTimeSeconds(), _stations.FirstOrDefault());
-var sensorMessurements = JsonConvert.DeserializeObject<IEnumerable<WeatherSensorMessurement>>(mesurementsJson);
+var measurementsJson = await GetMeasurementsJson(GetFromDate(), DateTimeOffset.UtcNow.ToUnixTimeSeconds(), _stations.FirstOrDefault());
+var sensorMeasurements = JsonConvert.DeserializeObject<IEnumerable<WeatherSensorMeasurement>>(measurementsJson);
 
-Console.WriteLine(mesurementsJson);
+Console.WriteLine(measurementsJson);
 
-await WriteMesurementsToTimeSeriesDb(_influxDbConnectionString, sensorMessurements);
+await WriteMeasurementsToTimeSeriesDb(_influxDbConnectionString, sensorMeasurements);
 
 private long GetFromDate()
 {
@@ -50,7 +50,7 @@ private long GetFromDate()
     return DateTimeOffset.UtcNow.AddHours(- _defaultNumberOfHours).ToUnixTimeSeconds();
 }
 
-private async Task<string> GetMesurementsJson(long fromDate, long toDate, string station)
+private async Task<string> GetMeasurementsJson(long fromDate, long toDate, string station)
 {
     List<string> jsonRespons = new List<string>();
     using (var client = new HttpClient())
@@ -70,7 +70,7 @@ private async Task<string> GetMesurementsJson(long fromDate, long toDate, string
     }
 }
 
-private async Task WriteMesurementsToTimeSeriesDb(string dbConnectionString, IEnumerable<WeatherSensorMessurement> messurements)
+private async Task WriteMeasurementsToTimeSeriesDb(string dbConnectionString, IEnumerable<WeatherSensorMeasurement> measurements)
 {
 	var client = new InfluxDb(dbConnectionString, "root", "root");
   	Pong pong = await client.PingAsync();
@@ -81,20 +81,20 @@ private async Task WriteMesurementsToTimeSeriesDb(string dbConnectionString, IEn
 	}
 	var response = await  client.CreateDatabaseAsync(_databaseName);
 	
-	foreach(var messurement in messurements)
+	foreach(var measurement in measurements)
 	{
-		var poin = new Point();
-		poin.Tags.Add("stationId", messurement.StationId);
-		poin.Fields.Add("averageTemperature", messurement.Temp.Average);
-		poin.Fields.Add("averageHumidity", messurement.Humidity.Average);
-		poin.Measurement = "WeatherSensorMessurement";
-		poin.Timestamp = messurement.TimeStamp;
+		var point = new Point();
+		point.Tags.Add("stationId", measurement.StationId);
+		point.Fields.Add("averageTemperature", measurement.Temp.Average);
+		point.Fields.Add("averageHumidity", measurement.Humidity.Average);
+		point.Measurement = "WeatherSensorMeasurement";
+		point.Timestamp = measurement.TimeStamp;
 
-		InfluxDbApiResponse writeResponse =await client.WriteAsync(_databaseName, poin);
+		InfluxDbApiResponse writeResponse = await client.WriteAsync(_databaseName, point);
 	}
 }
 
-public class WeatherSensorMessurement
+public class WeatherSensorMeasurement
 {
     [JsonProperty("station_id")]
     public string StationId { get; set; }
