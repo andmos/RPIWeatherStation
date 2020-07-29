@@ -1,2 +1,2 @@
 [rpistation]
-192.168.1.148 ansible_user=pi stationId="5bf05033199f0300011f2b9f"
+192.168.1.110 ansible_user=pi stationId="5bf05033199f0300011f2b9f"
