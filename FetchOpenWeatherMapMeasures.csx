@@ -1,5 +1,3 @@
-#! "netcoreapp2.1"
-
 #r "nuget: Newtonsoft.Json, 12.0.3"
 #r "nuget: System.Net.Http, 4.3.3"
 #r "nuget: InfluxDB.Net.Core, 1.1.22-beta"
